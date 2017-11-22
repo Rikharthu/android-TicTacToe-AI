@@ -6,14 +6,14 @@ class AIPlayer(seed: Seed) {
     private val aiPlayer: Seed = seed
     private val humanPlayer: Seed = if (seed == Seed.CROSS) Seed.NOUGHT else Seed.CROSS
 
-    fun minimax(newBoard: Array<Cell>, player: Seed): Move {
+    fun minimax(newBoard: Array<Cell>, player: Seed, depth: Int = 0): Move {
         var availSpots = emptyIndexes(newBoard)
 
         // checks for the terminal states such as win, lose, and tie and returning a value accordingly
         if (winning(newBoard, humanPlayer)) {
-            return Move(-1, -10)
+            return Move(-1, -100 + depth)
         } else if (winning(newBoard, aiPlayer)) {
-            return Move(-1, 10)
+            return Move(-1, 100 - depth)
         } else if (availSpots.isEmpty()) {
             return Move(-1, 0)
         }
@@ -33,10 +33,10 @@ class AIPlayer(seed: Seed) {
             //if collect the score resulted from calling minimax on the opponent of the current player
             val score: Int;
             if (player == aiPlayer) {
-                var result = minimax(newBoard, humanPlayer);
+                var result = minimax(newBoard, humanPlayer, depth + 1);
                 score = result.score
             } else {
-                var result = minimax(newBoard, aiPlayer);
+                var result = minimax(newBoard, aiPlayer, depth + 1);
                 score = result.score
             }
 
