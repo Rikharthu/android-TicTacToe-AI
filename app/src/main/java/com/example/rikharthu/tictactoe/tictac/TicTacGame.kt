@@ -1,16 +1,17 @@
 package com.example.rikharthu.tictactoe.tictac
 
-class TicTacGame(player1: TicTacPlayer, player2: TicTacPlayer) {
+import android.os.Handler
+
+class TicTacGame(player1: Player, player2: Player) {
 
     val board: Array<Cell>
-    val nought: TicTacPlayer
-    val cross: TicTacPlayer
-    val currentPlayer: TicTacPlayer? = null
+    val nought: Player
+    val cross: Player
+    val currentPlayer: Player? = null
     var updateListener: UpdateListener? = null
     var state: State = State.PLAYING
         get() = state()
         private set
-
 
     init {
         if (player1.seed == player2.seed) {
@@ -39,7 +40,8 @@ class TicTacGame(player1: TicTacPlayer, player2: TicTacPlayer) {
     fun isEmpty(row: Int, column: Int) = board[cellIndex(row, column)].seed == Seed.EMPTY
 
     fun start() {
-        nought.onCanMove()
+        // cross goes first
+        cross.onCanMove()
     }
 
     fun onNoughtMove(row: Int, column: Int) {

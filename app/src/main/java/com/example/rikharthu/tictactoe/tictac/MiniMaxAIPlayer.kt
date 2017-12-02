@@ -1,20 +1,41 @@
 package com.example.rikharthu.tictactoe.tictac
 
+import android.os.Handler
 import com.example.rikharthu.tictactoe.tictac.Seed.EMPTY
 
-class AIPlayer(seed: Seed) {
-    private val aiPlayer: Seed = seed
+class MiniMaxAIPlayer(seed: Seed) : Player(seed) {
+    val SIMULATED_DELAY = 1500L // TODO calcualte how much is left too
+    val simulateDelay = true
+    val handler = Handler()
+
     private val humanPlayer: Seed = if (seed == Seed.CROSS) Seed.NOUGHT else Seed.CROSS
 
-    fun minimax(newBoard: Array<Cell>, player: Seed, depth: Int = 0): Move {
+    override fun onCanMove() {
+        val index = nextMoveMinimax(game.board, seed).index
+        val row = index / 3
+        val column = index % 3
+
+        if (simulateDelay) {
+            handler.postDelayed({ move(row, column) }, SIMULATED_DELAY)
+        } else {
+            move(row, column)
+        }
+    }
+
+    private fun nextMoveMinimax(newBoard: Array<Cell>, player: Seed, depth: Int = 0): Move {
         var availSpots = emptyIndexes(newBoard)
 
         // checks for the terminal states such as win, lose, and tie and returning a value accordingly
         if (winning(newBoard, humanPlayer)) {
-            return Move(-1, -100 + depth)
-        } else if (winning(newBoard, aiPlayer)) {
-            return Move(-1, 100 - depth)
+            // opponent is winning
+            // if enemy wins, make it do as much moves as possible
+            // thus loosing at 3rd move is worse than loosing at 10th move
+            return Move(-1, -1000 + depth)
+        } else if (winning(newBoard, mSeed)) {
+            // AI is winning
+            return Move(-1, 1000 - depth)
         } else if (availSpots.isEmpty()) {
+            // Tie
             return Move(-1, 0)
         }
 
@@ -30,13 +51,13 @@ class AIPlayer(seed: Seed) {
             // set the empty spot to the current player
             newBoard[availSpots[i].index].seed = player
 
-            //if collect the score resulted from calling minimax on the opponent of the current player
+            //if collect the score resulted from calling nextMoveMinimax on the opponent of the current player
             val score: Int;
-            if (player == aiPlayer) {
-                var result = minimax(newBoard, humanPlayer, depth + 1);
+            if (player == mSeed) {
+                var result = nextMoveMinimax(newBoard, humanPlayer, depth + 1);
                 score = result.score
             } else {
-                var result = minimax(newBoard, aiPlayer, depth + 1);
+                var result = nextMoveMinimax(newBoard, mSeed, depth + 1);
                 score = result.score
             }
 
@@ -49,7 +70,7 @@ class AIPlayer(seed: Seed) {
 
         // if it is the computer's turn loop over the moves and choose the move with the highest score
         var bestMove = -1 // TODO
-        if (player === aiPlayer) {
+        if (player === mSeed) {
             var bestScore = -10000
             for (i in moves.indices) {
                 if (moves[i].score > bestScore) {
@@ -71,17 +92,4 @@ class AIPlayer(seed: Seed) {
         // return the chosen move (object) from the array to the higher depth
         return moves[bestMove]
     }
-
-    fun emptyIndexes(board: Array<Cell>) = board.filter { it.seed == EMPTY }
-
-    fun winning(board: Array<Cell>, player: Seed) =
-            (board[0].seed == player && board[1].seed == player && board[2].seed == player) ||
-                    (board[3].seed == player && board[4].seed == player && board[5].seed == player) ||
-                    (board[6].seed == player && board[7].seed == player && board[8].seed == player) ||
-                    (board[0].seed == player && board[3].seed == player && board[6].seed == player) ||
-                    (board[1].seed == player && board[4].seed == player && board[7].seed == player) ||
-                    (board[2].seed == player && board[5].seed == player && board[8].seed == player) ||
-                    (board[0].seed == player && board[4].seed == player && board[8].seed == player) ||
-                    (board[2].seed == player && board[4].seed == player && board[6].seed == player)
-
 }

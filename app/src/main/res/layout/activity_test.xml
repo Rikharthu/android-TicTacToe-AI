@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    tools:context="com.example.rikharthu.tictactoe.TestActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/AppToolbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:popupTheme="@style/AppToolbar" />
+
+    <com.example.rikharthu.tictactoe.views.TicTacBoard
+        android:id="@+id/ticTacBoard"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nought_icon_tv" />
+
+    <TextView
+        android:id="@+id/nought_icon_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:fontFamily="@font/architects_daughter"
+        android:gravity="center"
+        android:text="O"
+        android:textColor="#0000ff"
+        android:textSize="64dp"
+        app:layout_constraintEnd_toStartOf="@+id/textView5"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <TextView
+        android:id="@+id/cross_icon_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/architects_daughter"
+        android:text="X"
+        android:textColor="#ff0000"
+        android:textSize="64dp"
+        app:layout_constraintBottom_toBottomOf="@+id/cross_player_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/cross_player_label" />
+
+    <TextView
+        android:id="@+id/cross_player_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="AI"
+        android:textAlignment="textEnd"
+        android:textSize="32dp"
+        app:layout_constraintBottom_toBottomOf="@+id/nought_player_label"
+        app:layout_constraintStart_toEndOf="@+id/cross_icon_label"
+        app:layout_constraintTop_toTopOf="@+id/nought_player_label" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:lines="1"
+        android:text="You"
+        android:textAlignment="textStart"
+        android:textSize="32dp"
+        app:layout_constraintBottom_toBottomOf="@+id/nought_score_tv"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/nought_score_tv"
+        app:layout_constraintVertical_bias="0.567" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="/"
+        android:textSize="32dp"
+        app:layout_constraintBottom_toTopOf="@+id/ticTacBoard"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <TextView
+        android:id="@+id/nought_score_tv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="4dp"
+        android:text="1"
+        android:textAlignment="textStart"
+        android:textSize="32dp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView4"
+        app:layout_constraintEnd_toStartOf="@+id/nought_icon_tv"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/textView4"
+        app:layout_constraintTop_toTopOf="@+id/textView4"
+        app:layout_constraintVertical_bias="0.52" />
+
+    <TextView
+        android:id="@+id/nought_player_label"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:layout_marginStart="8dp"
+        android:lines="1"
+        android:text="1"
+        android:textAlignment="textEnd"
+        android:textSize="32dp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView4"
+        app:layout_constraintEnd_toStartOf="@+id/textView4"
+        app:layout_constraintStart_toEndOf="@+id/cross_player_label"
+        app:layout_constraintTop_toTopOf="@+id/textView4" />
+
+    <View
+        android:id="@+id/current_move_line"
+        android:layout_width="0dp"
+        android:layout_height="6dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/blue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/nought_icon_tv"
+        app:layout_constraintTop_toBottomOf="@+id/nought_score_tv" />
+
+</android.support.constraint.ConstraintLayout>

@@ -1,13 +1,13 @@
 package com.example.rikharthu.tictactoe.tictac;
 
-public class TicTacPlayer {
+public class Player {
 
-    private TicTacGame mGame;
-    private Listener mListener;
-    private Seed mSeed;
-    private boolean mCanMove;
+    protected TicTacGame mGame;
+    protected Listener mListener;
+    protected Seed mSeed;
+    protected boolean mCanMove;
 
-    public TicTacPlayer(Seed seed) {
+    public Player(Seed seed) {
         mSeed = seed;
     }
 

@@ -8,7 +8,6 @@ import android.support.constraint.ConstraintLayout
 import android.util.AttributeSet
 import android.view.View
 import android.widget.ImageView
-
 import butterknife.BindViews
 import butterknife.ButterKnife
 import butterknife.OnClick
@@ -104,5 +103,9 @@ class TicTacView : ConstraintLayout {
         val NONE = 2
 
         internal val CLEAR: ButterKnife.Action<ImageView> = ButterKnife.Action { view, index -> view.setImageDrawable(null) }
+    }
+
+    fun clear() {
+        ButterKnife.apply(mCellImages!!, CLEAR)
     }
 }
