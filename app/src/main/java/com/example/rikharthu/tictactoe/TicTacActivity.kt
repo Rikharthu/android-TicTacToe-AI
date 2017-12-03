@@ -41,10 +41,18 @@ class TicTacActivity : AppCompatActivity(), TicTacView.OnCellClickListener, TicT
         Timber.d("player1 = ${player1.seed}, player2 = ${player2.seed}")
 
         game = TicTacGame(player1, player2)
-        player1.listener = (Player.Listener {
-            Timber.d("Player 1 can move")
-            currentPlayer = player1
-            canMove = true
+        player1.listener = (object : Player.Listener {
+            override fun onCanMove() {
+                Timber.d("Player 1 can move")
+                currentPlayer = player1
+                canMove = true
+            }
+
+            override fun onCancelMove() {
+                // Do nothing
+                // TODO
+            }
+
         })
         game.updateListener = this
         game.start()
@@ -65,10 +73,18 @@ class TicTacActivity : AppCompatActivity(), TicTacView.OnCellClickListener, TicT
         Timber.d("player1 = ${player1.seed}, player2 = ${player2.seed}")
 
         game = TicTacGame(player1, player2)
-        player1.listener = (Player.Listener {
-            Timber.d("Player 1 can move")
-            currentPlayer = player1
-            canMove = true
+        player1.listener = (object:Player.Listener {
+            override fun onCanMove() {
+                Timber.d("Player 1 can move")
+                currentPlayer = player1
+                canMove = true
+            }
+
+            override fun onCancelMove() {
+                // Do nothing
+                // TODO
+            }
+
         })
         game.updateListener = this
         game.start()

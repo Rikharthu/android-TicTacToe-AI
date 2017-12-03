@@ -1,15 +1,17 @@
 package com.example.rikharthu.tictactoe.tictac
 
 import android.os.Handler
+import android.os.Looper
 import android.os.Process
+import android.support.annotation.WorkerThread
 import com.example.rikharthu.tictactoe.tictac.Seed.EMPTY
 import timber.log.Timber
 import java.util.concurrent.*
 
 class MiniMaxAIPlayer(seed: Seed) : Player(seed) {
-    val SIMULATED_DELAY = 1500L // TODO calculate how much is left too
-    val simulateDelay = true
-    private val handler = Handler()
+    var simulateDelay = false
+    var simulatedDelayLength = 1500L
+    private val uiHandler = Handler(Looper.getMainLooper())
 
     private val NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors()
     private val KEEP_ALIVE_TIME = 1L
@@ -25,33 +27,45 @@ class MiniMaxAIPlayer(seed: Seed) : Player(seed) {
 
     private val humanPlayer: Seed = if (seed == Seed.CROSS) Seed.NOUGHT else Seed.CROSS
 
+    private var calculationStartedMillis: Long = 0
+
     override fun onCanMove() {
         val runnableTask = {
-            // TODO also refactor the algorithm to be concurrent too, instead just passing it to a worker thread
             Timber.d("Calculating next move")
+            // TODO also refactor the algorithm to be concurrent too, instead just passing it to a worker thread
+            calculationStartedMillis = System.currentTimeMillis()
             val index = nextMoveMinimax(game.board, seed).index
             val row = index / 3
             val column = index % 3
-            val res = handler.post { onNextMoveCalculated(row, column) }
+            onNextMoveCalculated(row, column)
         }
         executorService.execute(runnableTask)
+    }
 
-//        val index = nextMoveMinimax(game.board, seed).index
-//        val row = index / 3
-//        val column = index % 3
-//
-//        if (simulateDelay) {
-//            handler.postDelayed({ move(row, column) }, SIMULATED_DELAY)
-//        } else {
-//            move(row, column)
-//        }
+    override fun onCancelMove() {
+        // TODO cancel calculations
+        // TODO cancel pending uiHandler tasks
+        // https://stackoverflow.com/questions/13929618/stop-a-runnable-submitted-to-executorservice
     }
 
     private fun onNextMoveCalculated(row: Int, column: Int) {
         Timber.d("Next move has been calculated")
-        move(row, column)
+        val finishedCalculationMillis = System.currentTimeMillis()
+        val delay: Long
+        if (simulateDelay) {
+            val timeLeft = simulatedDelayLength - (finishedCalculationMillis - calculationStartedMillis)
+            delay = if (timeLeft <= 0)
+                0
+            else
+                timeLeft
+        } else {
+            delay = 0
+        }
+        // Post to UI thread
+        uiHandler.postDelayed({ move(row, column) }, delay)
     }
 
+    @WorkerThread
     private fun nextMoveMinimax(newBoard: Array<Cell>, player: Seed, depth: Int = 0): Move {
         var availSpots = emptyIndexes(newBoard)
 
@@ -130,7 +144,7 @@ class MiniMaxAIPlayer(seed: Seed) : Player(seed) {
             thread.name = "CustomThread" + sTag
             thread.priority = Process.THREAD_PRIORITY_BACKGROUND
 
-            // A exception handler is created to log the exception from threads
+            // A exception uiHandler is created to log the exception from threads
             thread.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { thread, ex ->
                 Timber.e(thread.name + " encountered an error: " + ex.message)
             }

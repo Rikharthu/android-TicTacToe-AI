@@ -18,6 +18,9 @@ import timber.log.Timber
 
 class TestActivity : AppCompatActivity(), TicTacBoard.SquarePressedListener, TicTacGame.UpdateListener {
 
+    // TODO handle case when restart is pressed while AIPlayer is calculating it's next move
+    // TODO thus game is restarted, but AIPlayer callbacks fires and makes move, updating the board
+
     private lateinit var game: TicTacGame
     private lateinit var currentPlayer: Player
     var canMove = false
@@ -62,7 +65,7 @@ class TestActivity : AppCompatActivity(), TicTacBoard.SquarePressedListener, Tic
                 restartGame()
             }
             R.id.action_settings -> {
-
+                Toast.makeText(this, "Opening settings", Toast.LENGTH_SHORT).show()
             }
             else -> {
             }
@@ -76,11 +79,21 @@ class TestActivity : AppCompatActivity(), TicTacBoard.SquarePressedListener, Tic
 
         val player1 = Player(Seed.NOUGHT)
         val player2 = MiniMaxAIPlayer(Seed.CROSS)
+        player2.simulateDelay = true
+        player2.simulatedDelayLength = 1000L
         game = TicTacGame(player1, player2)
-        player1.listener = (Player.Listener {
-            Timber.d("Player 1 can move")
-            currentPlayer = player1
-            canMove = true
+        player1.listener = (object:Player.Listener {
+            override fun onCanMove() {
+                Timber.d("Player 1 can move")
+                currentPlayer = player1
+                canMove = true
+            }
+
+            override fun onCancelMove() {
+                // Do nothing
+                // TODO
+            }
+
         })
         game.updateListener = this
         game.start()

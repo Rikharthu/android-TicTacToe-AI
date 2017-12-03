@@ -70,12 +70,14 @@ class TicTacBoard : View {
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = resources.displayMetrics.density * 5//line width
 
-        crossPaint.color = Color.RED
+//        crossPaint.color = Color.RED
+        crossPaint.color = Color.WHITE
         crossPaint.isAntiAlias = true
         crossPaint.typeface = ResourcesCompat.getFont(context, R.font.architects_daughter)
         crossPaint.textSize = resources.displayMetrics.scaledDensity * 100
 
-        noughtPaint.color = Color.BLUE
+//        noughtPaint.color = Color.BLUE
+        noughtPaint.color = Color.WHITE
         noughtPaint.isAntiAlias = true
         noughtPaint.typeface = ResourcesCompat.getFont(context, R.font.architects_daughter)
         noughtPaint.textSize = resources.displayMetrics.scaledDensity * 100
@@ -257,7 +259,8 @@ class TicTacBoard : View {
         Timber.d("Clearing board")
         squareData.forEachIndexed { i, rects ->
             for ((j, _) in rects.withIndex()) {
-                drawOAtPosition(i, j)
+                squareData[i][j] = ""
+                invalidate()
             }
         }
     }

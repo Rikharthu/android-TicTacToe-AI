@@ -25,6 +25,11 @@ public class Player {
         mListener.onCanMove();
     }
 
+    protected void onCancelMove() {
+        mCanMove = false;
+        mListener.onCancelMove();
+    }
+
     public TicTacGame getGame() {
         return mGame;
     }
@@ -51,5 +56,7 @@ public class Player {
 
     public interface Listener {
         void onCanMove();
+
+        void onCancelMove();
     }
 }

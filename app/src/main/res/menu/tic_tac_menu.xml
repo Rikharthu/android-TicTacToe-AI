@@ -8,6 +8,7 @@
         app:showAsAction="always" />
     <item
         android:id="@+id/action_settings"
+        app:showAsAction="never"
         android:title="Settings" />
 
 </menu>
