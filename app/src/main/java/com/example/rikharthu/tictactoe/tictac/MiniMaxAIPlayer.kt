@@ -1,25 +1,55 @@
 package com.example.rikharthu.tictactoe.tictac
 
 import android.os.Handler
+import android.os.Process
 import com.example.rikharthu.tictactoe.tictac.Seed.EMPTY
+import timber.log.Timber
+import java.util.concurrent.*
 
 class MiniMaxAIPlayer(seed: Seed) : Player(seed) {
-    val SIMULATED_DELAY = 1500L // TODO calcualte how much is left too
+    val SIMULATED_DELAY = 1500L // TODO calculate how much is left too
     val simulateDelay = true
-    val handler = Handler()
+    private val handler = Handler()
+
+    private val NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors()
+    private val KEEP_ALIVE_TIME = 1L
+    private val KEEP_ALIVE_TIME_UNIT = TimeUnit.SECONDS
+    private val taskQueue: BlockingQueue<Runnable> = LinkedBlockingQueue<Runnable>()
+    private val executorService: ExecutorService = ThreadPoolExecutor(NUMBER_OF_CORES,
+            NUMBER_OF_CORES * 2,
+            KEEP_ALIVE_TIME,
+            KEEP_ALIVE_TIME_UNIT,
+            taskQueue,
+            BackgroundThreadFactory())
+
 
     private val humanPlayer: Seed = if (seed == Seed.CROSS) Seed.NOUGHT else Seed.CROSS
 
     override fun onCanMove() {
-        val index = nextMoveMinimax(game.board, seed).index
-        val row = index / 3
-        val column = index % 3
-
-        if (simulateDelay) {
-            handler.postDelayed({ move(row, column) }, SIMULATED_DELAY)
-        } else {
-            move(row, column)
+        val runnableTask = {
+            // TODO also refactor the algorithm to be concurrent too, instead just passing it to a worker thread
+            Timber.d("Calculating next move")
+            val index = nextMoveMinimax(game.board, seed).index
+            val row = index / 3
+            val column = index % 3
+            val res = handler.post { onNextMoveCalculated(row, column) }
         }
+        executorService.execute(runnableTask)
+
+//        val index = nextMoveMinimax(game.board, seed).index
+//        val row = index / 3
+//        val column = index % 3
+//
+//        if (simulateDelay) {
+//            handler.postDelayed({ move(row, column) }, SIMULATED_DELAY)
+//        } else {
+//            move(row, column)
+//        }
+    }
+
+    private fun onNextMoveCalculated(row: Int, column: Int) {
+        Timber.d("Next move has been calculated")
+        move(row, column)
     }
 
     private fun nextMoveMinimax(newBoard: Array<Cell>, player: Seed, depth: Int = 0): Move {
@@ -52,7 +82,7 @@ class MiniMaxAIPlayer(seed: Seed) : Player(seed) {
             newBoard[availSpots[i].index].seed = player
 
             //if collect the score resulted from calling nextMoveMinimax on the opponent of the current player
-            val score: Int;
+            val score: Int
             if (player == mSeed) {
                 var result = nextMoveMinimax(newBoard, humanPlayer, depth + 1);
                 score = result.score
@@ -74,7 +104,7 @@ class MiniMaxAIPlayer(seed: Seed) : Player(seed) {
             var bestScore = -10000
             for (i in moves.indices) {
                 if (moves[i].score > bestScore) {
-                    bestScore = moves[i].score;
+                    bestScore = moves[i].score
                     bestMove = i
                 }
             }
@@ -91,5 +121,24 @@ class MiniMaxAIPlayer(seed: Seed) : Player(seed) {
 
         // return the chosen move (object) from the array to the higher depth
         return moves[bestMove]
+    }
+
+    private class BackgroundThreadFactory : ThreadFactory {
+
+        override fun newThread(runnable: Runnable): Thread {
+            val thread = Thread(runnable)
+            thread.name = "CustomThread" + sTag
+            thread.priority = Process.THREAD_PRIORITY_BACKGROUND
+
+            // A exception handler is created to log the exception from threads
+            thread.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { thread, ex ->
+                Timber.e(thread.name + " encountered an error: " + ex.message)
+            }
+            return thread
+        }
+
+        companion object {
+            private val sTag = 1
+        }
     }
 }

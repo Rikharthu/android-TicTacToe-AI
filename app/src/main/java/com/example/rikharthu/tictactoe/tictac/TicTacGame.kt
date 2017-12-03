@@ -1,6 +1,5 @@
 package com.example.rikharthu.tictactoe.tictac
 
-import android.os.Handler
 
 class TicTacGame(player1: Player, player2: Player) {
 
@@ -12,6 +11,7 @@ class TicTacGame(player1: Player, player2: Player) {
     var state: State = State.PLAYING
         get() = state()
         private set
+
 
     init {
         if (player1.seed == player2.seed) {
