@@ -65,7 +65,7 @@ class TicTacBoard : View {
 
     @SuppressLint("PrivateResource")
     private fun init() {
-        paint.color = ContextCompat.getColor(context, R.color.colorPrimary)
+        paint.color = ContextCompat.getColor(context, R.color.white)
         paint.isAntiAlias = true
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = resources.displayMetrics.density * 5//line width

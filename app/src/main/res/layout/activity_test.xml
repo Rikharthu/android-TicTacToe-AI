@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
+    android:background="@color/chalkboard_green"
     tools:context="com.example.rikharthu.tictactoe.TestActivity">
 
     <android.support.v7.widget.Toolbar
