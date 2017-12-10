@@ -6,10 +6,12 @@ import android.os.Process
 import android.support.annotation.WorkerThread
 import com.example.rikharthu.tictactoe.tictac.Seed.EMPTY
 import timber.log.Timber
+import java.util.*
 import java.util.concurrent.*
 
 class MiniMaxAIPlayer(seed: Seed) : Player(seed) {
     var simulateDelay = false
+    var randomFirstMove = true
     var simulatedDelayLength = 1500L
     private val uiHandler = Handler(Looper.getMainLooper())
 
@@ -24,96 +26,101 @@ class MiniMaxAIPlayer(seed: Seed) : Player(seed) {
             taskQueue,
             BackgroundThreadFactory())
 
-
-    private val humanPlayer: Seed = if (seed == Seed.CROSS) Seed.NOUGHT else Seed.CROSS
+    /**
+     * Enemy player seed, also know as the Minimizer
+     */
+    private val enemyPlayer: Seed = if (seed == Seed.CROSS) Seed.NOUGHT else Seed.CROSS
 
     private var calculationStartedMillis: Long = 0
 
     override fun onCanMove() {
         val runnableTask = {
             Timber.d("Calculating next move")
-            // TODO also refactor the algorithm to be concurrent too, instead just passing it to a worker thread
-            calculationStartedMillis = System.currentTimeMillis()
-            val index = nextMoveMinimax(game.board, seed).index
+            // TODO refactor the algorithm to be concurrent too, instead just passing it to a worker thread
+            /* FIXME
+            there is a potential bug, if onCanMove() is called multiple times before onNextMove finished
+            thus updating calculationStartedMillis
+            Possible fix is to calculate time right here and then pass it along as argument to onNextMoveCalculated()
+             */
+
+            val t1 = System.currentTimeMillis()
+            val index: Int
+            if (randomFirstMove && emptyIndexes(game.board).size == 9) {
+                index = Random().nextInt(9)
+            } else {
+                index = nextMoveMinimax(game.board, seed).index
+            }
+            val t2 = System.currentTimeMillis()
+            val delay: Long
+            if (simulateDelay) {
+                val timeLeft = simulatedDelayLength - (t2 - t1)
+                delay = if (timeLeft <= 0)
+                    0
+                else
+                    timeLeft
+            } else {
+                delay = 0
+            }
             val row = index / 3
             val column = index % 3
-            onNextMoveCalculated(row, column)
+
+            // Post to UI thread
+            uiHandler.postDelayed({ move(row, column) }, delay)
+            Timber.d("Calcultions took: ${t2 - t1}ms")
         }
         executorService.execute(runnableTask)
     }
 
     override fun onCancelMove() {
-        // TODO cancel calculations
-        // TODO cancel pending uiHandler tasks
+        // TODO cancel calculations and pending mUiHandler tasks
         // https://stackoverflow.com/questions/13929618/stop-a-runnable-submitted-to-executorservice
     }
 
-    private fun onNextMoveCalculated(row: Int, column: Int) {
-        Timber.d("Next move has been calculated")
-        val finishedCalculationMillis = System.currentTimeMillis()
-        val delay: Long
-        if (simulateDelay) {
-            val timeLeft = simulatedDelayLength - (finishedCalculationMillis - calculationStartedMillis)
-            delay = if (timeLeft <= 0)
-                0
-            else
-                timeLeft
-        } else {
-            delay = 0
-        }
-        // Post to UI thread
-        uiHandler.postDelayed({ move(row, column) }, delay)
-    }
-
     @WorkerThread
-    private fun nextMoveMinimax(newBoard: Array<Cell>, player: Seed, depth: Int = 0): Move {
-        var availSpots = emptyIndexes(newBoard)
+    private fun nextMoveMinimax(board: Array<Cell>, player: Seed, depth: Int = 0): Move {
+        var availableSpots = emptyIndexes(board)
 
-        // checks for the terminal states such as win, lose, and tie and returning a value accordingly
-        if (winning(newBoard, humanPlayer)) {
-            // opponent is winning
-            // if enemy wins, make it do as much moves as possible
+        // Check for terminal state
+        if (isWinning(board, enemyPlayer)) {
+            // opponent is winning (Minimizing)
+            // If enemy wins, make it do as much moves as possible
             // thus loosing at 3rd move is worse than loosing at 10th move
             return Move(-1, -1000 + depth)
-        } else if (winning(newBoard, mSeed)) {
-            // AI is winning
+        } else if (isWinning(board, mSeed)) {
+            // AI is winning (Maximizing)
             return Move(-1, 1000 - depth)
-        } else if (availSpots.isEmpty()) {
+        } else if (availableSpots.isEmpty()) {
             // Tie
             return Move(-1, 0)
         }
 
-        // an array to collect all the objects
         var moves = arrayListOf<Move>()
 
         // loop through available spots
-
-        for (i in availSpots.indices) {
-            //create an object for each and store the index of that spot that was stored as a number in the object's index key
-            val index = newBoard[availSpots[i].index].index
+        for (i in availableSpots.indices) {
+            // index corresponds to board position (both row and column)
+            val index = board[availableSpots[i].index].index
 
             // set the empty spot to the current player
-            newBoard[availSpots[i].index].seed = player
+            board[availableSpots[i].index].seed = player
 
-            //if collect the score resulted from calling nextMoveMinimax on the opponent of the current player
+            // Calculate possible next moves by calling minimax on enemy and on self
             val score: Int
             if (player == mSeed) {
-                var result = nextMoveMinimax(newBoard, humanPlayer, depth + 1);
-                score = result.score
+                // What is enemy's next best move
+                score = nextMoveMinimax(board, enemyPlayer, depth + 1).score
             } else {
-                var result = nextMoveMinimax(newBoard, mSeed, depth + 1);
-                score = result.score
+                score = nextMoveMinimax(board, mSeed, depth + 1).score
             }
 
             //reset the spot to empty
-            newBoard[availSpots[i].index].seed = EMPTY
+            board[availableSpots[i].index].seed = EMPTY
 
-            // push the object to the array
             moves.add(Move(index, score))
         }
 
-        // if it is the computer's turn loop over the moves and choose the move with the highest score
-        var bestMove = -1 // TODO
+        // If it's AI turn, find the moves with highest score (Maximize)
+        var bestMove = -1
         if (player === mSeed) {
             var bestScore = -10000
             for (i in moves.indices) {
@@ -122,15 +129,17 @@ class MiniMaxAIPlayer(seed: Seed) : Player(seed) {
                     bestMove = i
                 }
             }
+//            Timber.d("Best move for Maximizer is $bestMove with a score of $bestScore")
         } else {
-            // else loop over the moves and choose the move with the lowest score
+            // Enemy, it's minimizing
             var bestScore = 10000
             for (i in moves.indices) {
                 if (moves[i].score < bestScore) {
-                    bestScore = moves[i].score;
-                    bestMove = i;
+                    bestScore = moves[i].score
+                    bestMove = i
                 }
             }
+//            Timber.d("Best move for Minimizer is $bestMove with a score of $bestScore")
         }
 
         // return the chosen move (object) from the array to the higher depth

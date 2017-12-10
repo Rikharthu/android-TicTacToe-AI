@@ -46,7 +46,7 @@ class TicTacGame(player1: Player, player2: Player) {
 
     fun onNoughtMove(row: Int, column: Int) {
         // TODO check if valid move
-        // TODO add checks for winning/tie conditions
+        // TODO add checks for isWinning/tie conditions
         val index = cellIndex(row, column)
         board[index].seed = Seed.NOUGHT
         updateListener?.onBoardUpdated(board)
